@@ -1,3 +1,30 @@
+// SVELTEKIT-BACKEND-PRESERVED: moved out of svelte/ during the cljs migration; not wired.
+//
+// Moved verbatim (only this header comment added) from
+// `svelte/src/routes/xrpc/[...path]/+server.ts`, the SvelteKit server-route
+// file that was the actual deployed XRPC handler under the old
+// `wrangler.jsonc` `main` (which pointed at the SvelteKit Cloudflare
+// adapter build output, `svelte/.svelte-kit/cloudflare/_worker.js`). It
+// proxies an arbitrary XRPC method call straight through to the
+// AgentGateway MCP router at `AGENTGATEWAY_MCP_ROUTER_URL`
+// (`https://mcp.etzhayyim.com/xrpc/com.etzhayyim.mcp.message`).
+//
+// This migration's wrangler.jsonc no longer sets `main` at all — `src/app.ts`
+// (this repo's actual production Worker facade, built on
+// `@etzhayyim/kotodama-host-sdk`'s `createWorkerExport`) does not call
+// `env.ASSETS.fetch(...)` anywhere, so it cannot stand in front of the
+// static asset bundle the way it does in some sibling migrations (e.g.
+// gmail). `src/app.ts` registers its own commands/queries — e.g.
+// `com.etzhayyim.apps.osMessaging.webhookDiscord`,
+// `...webhookTelegram`, `...connectPlatform`, `...listConnections` — through
+// the host SDK's own command/query dispatch, which is a different mechanism
+// from this file's raw XRPC-over-HTTP proxy to the MCP router. This file's
+// proxy path is therefore not wired into the deploy target at all (there is
+// currently no Worker `main` serving traffic in front of the assets); whether
+// to revive it, and how it would relate to `src/app.ts`'s own command
+// dispatch, is an open product decision, not decided here. It also still
+// imports from `@sveltejs/kit` and `./$types`, neither of which resolves now
+// that the SvelteKit toolchain (`svelte/`) has been removed.
 import { json, type RequestEvent } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
